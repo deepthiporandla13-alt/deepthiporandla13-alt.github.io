@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Sorting Algorithm Visualizer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; color: #e2e8f0; font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  header { background: #1a1d2e; border-bottom: 1px solid #2d3154; padding: 1rem 2rem; display: flex; align-items: center; gap: 1rem; }
+  header h1 { font-size: 1.3rem; font-weight: 600; color: #a78bfa; }
+  header span { font-size: 0.8rem; color: #64748b; background: #1e2235; padding: 3px 10px; border-radius: 12px; border: 1px solid #2d3154; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+
+  .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; background: #1a1d2e; border-radius: 12px; padding: 1.2rem; border: 1px solid #2d3154; }
+  .control-group label { display: block; font-size: 0.72rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  select, input[type=range] { width: 100%; background: #0f1117; border: 1px solid #2d3154; color: #e2e8f0; border-radius: 6px; padding: 6px 10px; font-size: 0.88rem; outline: none; }
+  select:focus { border-color: #7c3aed; }
+  .slider-row { display: flex; align-items: center; gap: 8px; }
+  .slider-row input { flex: 1; }
+  .slider-val { font-size: 0.82rem; color: #a78bfa; min-width: 28px; text-align: right; font-weight: 600; }
+  input[type=range] { -webkit-appearance: none; height: 4px; background: #2d3154; border-radius: 2px; padding: 0; border: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #7c3aed; cursor: pointer; }
+
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { padding: 9px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: all 0.15s; }
+  .btn-primary { background: #7c3aed; color: white; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-secondary { background: #1e2235; color: #a78bfa; border: 1px solid #2d3154; }
+  .btn-secondary:hover { background: #2d3154; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .stat-card { background: #1a1d2e; border: 1px solid #2d3154; border-radius: 10px; padding: 12px 16px; text-align: center; }
+  .stat-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .stat-value { font-size: 1.4rem; font-weight: 600; color: #a78bfa; }
+
+  .canvas-wrap { background: #1a1d2e; border: 1px solid #2d3154; border-radius: 12px; padding: 1.2rem; margin-bottom: 1.5rem; }
+  canvas#sortCanvas { display: block; width: 100%; border-radius: 6px; }
+
+  .complexity-section { background: #1a1d2e; border: 1px solid #2d3154; border-radius: 12px; padding: 1.2rem; }
+  .complexity-section h3 { font-size: 0.9rem; color: #94a3b8; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .complexity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  canvas#complexityCanvas { display: block; width: 100%; border-radius: 6px; }
+
+  .algo-info { background: #0f1117; border-radius: 8px; padding: 1rem; }
+  .algo-info h4 { font-size: 0.95rem; color: #a78bfa; margin-bottom: 10px; }
+  .info-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #1e2235; font-size: 0.82rem; }
+  .info-row:last-child { border: none; }
+  .info-key { color: #64748b; }
+  .info-val { color: #e2e8f0; font-weight: 500; }
+  .badge { padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; }
+  .badge-green { background: #14532d; color: #4ade80; }
+  .badge-yellow { background: #713f12; color: #fbbf24; }
+  .badge-red { background: #7f1d1d; color: #f87171; }
+
+  .legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #64748b; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎯 Sorting Algorithm Visualizer</h1>
+  <span>by Deepthi Porandla</span>
+</header>
+
+<div class="container">
+
+  <div class="controls">
+    <div class="control-group">
+      <label>Algorithm</label>
+      <select id="algoSelect">
+        <option value="bubble">Bubble Sort</option>
+        <option value="selection">Selection Sort</option>
+        <option value="insertion">Insertion Sort</option>
+        <option value="merge">Merge Sort</option>
+        <option value="quick">Quick Sort</option>
+        <option value="heap">Heap Sort</option>
+      </select>
+    </div>
+    <div class="control-group">
+      <label>Array Size</label>
+      <div class="slider-row">
+        <input type="range" id="sizeSlider" min="10" max="80" value="40" step="1">
+        <span class="slider-val" id="sizeVal">40</span>
+      </div>
+    </div>
+    <div class="control-group">
+      <label>Speed</label>
+      <div class="slider-row">
+        <input type="range" id="speedSlider" min="1" max="10" value="5" step="1">
+        <span class="slider-val" id="speedVal">5</span>
+      </div>
+    </div>
+    <div class="control-group">
+      <label>Actions</label>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="genBtn" onclick="generateArray()">Generate</button>
+        <button class="btn btn-primary" id="sortBtn" onclick="startSort()">Sort ▶</button>
+        <button class="btn btn-secondary" id="stopBtn" onclick="stopSort()" disabled>Stop</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="stat-label">Comparisons</div><div class="stat-value" id="statComp">0</div></div>
+    <div class="stat-card"><div class="stat-label">Swaps</div><div class="stat-value" id="statSwap">0</div></div>
+    <div class="stat-card"><div class="stat-label">Time (ms)</div><div class="stat-value" id="statTime">0</div></div>
+    <div class="stat-card"><div class="stat-label">Status</div><div class="stat-value" id="statStatus" style="font-size:0.9rem;color:#4ade80">Ready</div></div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="sortCanvas" height="280"></canvas>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#5b6fe6"></div>Unsorted</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fbbf24"></div>Comparing</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>Sorted</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div>Pivot</div>
+    </div>
+  </div>
+
+  <div class="complexity-section">
+    <h3>Complexity Analysis</h3>
+    <div class="complexity-grid">
+      <canvas id="complexityCanvas" height="220"></canvas>
+      <div class="algo-info" id="algoInfo"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const COLORS = { default:'#5b6fe6', comparing:'#fbbf24', sorted:'#4ade80', pivot:'#f87171' };
+
+let arr = [], colorArr = [], running = false, stopFlag = false;
+let comparisons = 0, swaps = 0, startTime = 0;
+let animQueue = [], animIndex = 0, animTimer = null;
+
+const sortCanvas = document.getElementById('sortCanvas');
+const ctx = sortCanvas.getContext('2d');
+const compCanvas = document.getElementById('complexityCanvas');
+const cctx = compCanvas.getContext('2d');
+
+const algoData = {
+  bubble:    { name:'Bubble Sort',    best:'O(n)', avg:'O(n²)', worst:'O(n²)', space:'O(1)', stable:'Yes', note:'Simple but slow for large inputs.' },
+  selection: { name:'Selection Sort', best:'O(n²)', avg:'O(n²)', worst:'O(n²)', space:'O(1)', stable:'No', note:'Minimal swaps, always O(n²).' },
+  insertion: { name:'Insertion Sort', best:'O(n)', avg:'O(n²)', worst:'O(n²)', space:'O(1)', stable:'Yes', note:'Best for small/nearly sorted arrays.' },
+  merge:     { name:'Merge Sort',     best:'O(n log n)', avg:'O(n log n)', worst:'O(n log n)', space:'O(n)', stable:'Yes', note:'Consistent performance, extra space needed.' },
+  quick:     { name:'Quick Sort',     best:'O(n log n)', avg:'O(n log n)', worst:'O(n²)', space:'O(log n)', stable:'No', note:'Fastest in practice for random data.' },
+  heap:      { name:'Heap Sort',      best:'O(n log n)', avg:'O(n log n)', worst:'O(n log n)', space:'O(1)', stable:'No', note:'In-place, consistent O(n log n).' }
+};
+
+function resize() {
+  const w = sortCanvas.parentElement.clientWidth - 40;
+  sortCanvas.width = w;
+  compCanvas.width = compCanvas.parentElement.clientWidth;
+  drawBars(arr, colorArr);
+  drawComplexity();
+}
+
+function generateArray() {
+  stopSort();
+  const n = +document.getElementById('sizeSlider').value;
+  arr = Array.from({length: n}, () => Math.floor(Math.random() * 90) + 10);
+  colorArr = Array(n).fill(COLORS.default);
+  comparisons = 0; swaps = 0;
+  updateStats(0); setStatus('Ready', '#4ade80');
+  drawBars(arr, colorArr);
+}
+
+function drawBars(a, colors) {
+  const W = sortCanvas.width, H = sortCanvas.height;
+  ctx.clearRect(0, 0, W, H);
+  if (!a.length) return;
+  const gap = 2, barW = (W - gap * (a.length - 1)) / a.length;
+  const maxVal = Math.max(...a);
+  a.forEach((v, i) => {
+    const h = (v / maxVal) * (H - 30);
+    const x = i * (barW + gap);
+    const y = H - h;
+    ctx.fillStyle = colors[i] || COLORS.default;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, y, barW, h, [2,2,0,0]) : ctx.rect(x, y, barW, h);
+    ctx.fill();
+    if (barW > 18) {
+      ctx.fillStyle = '#0f1117';
+      ctx.font = `${Math.min(barW * 0.55, 11)}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.fillText(v, x + barW / 2, H - 6);
+    }
+  });
+}
+
+function updateStats(elapsed) {
+  document.getElementById('statComp').textContent = comparisons;
+  document.getElementById('statSwap').textContent = swaps;
+  document.getElementById('statTime').textContent = elapsed ? elapsed.toFixed(0) : 0;
+}
+
+function setStatus(text, color) {
+  const el = document.getElementById('statStatus');
+  el.textContent = text;
+  el.style.color = color;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function getDelay() {
+  const speed = +document.getElementById('speedSlider').value;
+  return Math.max(1, Math.round(300 / (speed * speed)));
+}
+
+async function startSort() {
+  if (running) return;
+  if (!arr.length) generateArray();
+  running = true; stopFlag = false;
+  comparisons = 0; swaps = 0;
+  colorArr = Array(arr.length).fill(COLORS.default);
+  document.getElementById('sortBtn').disabled = true;
+  document.getElementById('stopBtn').disabled = false;
+  document.getElementById('genBtn').disabled = true;
+  setStatus('Sorting...', '#fbbf24');
+  startTime = performance.now();
+
+  const algo = document.getElementById('algoSelect').value;
+  const draw = (a, c) => { colorArr = [...c]; drawBars(a, c); updateStats(performance.now() - startTime); };
+  const d = () => getDelay();
+
+  try {
+    if (algo === 'bubble') await bubbleSort(arr, draw, d);
+    else if (algo === 'selection') await selectionSort(arr, draw, d);
+    else if (algo === 'insertion') await insertionSort(arr, draw, d);
+    else if (algo === 'merge') await mergeSort(arr, 0, arr.length - 1, draw, d);
+    else if (algo === 'quick') await quickSort(arr, 0, arr.length - 1, draw, d);
+    else if (algo === 'heap') await heapSort(arr, draw, d);
+
+    if (!stopFlag) {
+      colorArr = Array(arr.length).fill(COLORS.sorted);
+      drawBars(arr, colorArr);
+      setStatus('Done ✓', '#4ade80');
+      updateStats(performance.now() - startTime);
+    }
+  } catch(e) {}
+
+  running = false;
+  document.getElementById('sortBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  document.getElementById('genBtn').disabled = false;
+}
+
+function stopSort() {
+  stopFlag = true; running = false;
+  document.getElementById('sortBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  document.getElementById('genBtn').disabled = false;
+  setStatus('Stopped', '#f87171');
+}
+
+async function bubbleSort(a, draw, d) {
+  const n = a.length;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n - i - 1; j++) {
+      if (stopFlag) return;
+      comparisons++;
+      const c = Array(n).fill(COLORS.default);
+      for (let k = n - i; k < n; k++) c[k] = COLORS.sorted;
+      c[j] = COLORS.comparing; c[j+1] = COLORS.comparing;
+      draw(a, c); await sleep(d());
+      if (a[j] > a[j+1]) { [a[j], a[j+1]] = [a[j+1], a[j]]; swaps++; }
+    }
+  }
+}
+
+async function selectionSort(a, draw, d) {
+  const n = a.length;
+  for (let i = 0; i < n; i++) {
+    let minIdx = i;
+    for (let j = i + 1; j < n; j++) {
+      if (stopFlag) return;
+      comparisons++;
+      const c = Array(n).fill(COLORS.default);
+      for (let k = 0; k < i; k++) c[k] = COLORS.sorted;
+      c[minIdx] = COLORS.comparing; c[j] = COLORS.comparing;
+      draw(a, c); await sleep(d());
+      if (a[j] < a[minIdx]) minIdx = j;
+    }
+    if (minIdx !== i) { [a[i], a[minIdx]] = [a[minIdx], a[i]]; swaps++; }
+  }
+}
+
+async function insertionSort(a, draw, d) {
+  for (let i = 1; i < a.length; i++) {
+    let key = a[i], j = i - 1;
+    while (j >= 0 && a[j] > key) {
+      if (stopFlag) return;
+      comparisons++; a[j+1] = a[j]; swaps++;
+      const c = Array(a.length).fill(COLORS.default);
+      for (let k = 0; k <= i; k++) c[k] = COLORS.sorted;
+      c[j] = COLORS.comparing; c[j+1] = COLORS.comparing;
+      draw(a, c); await sleep(d()); j--;
+    }
+    a[j+1] = key;
+  }
+}
+
+async function mergeSort(a, l, r, draw, d) {
+  if (l >= r || stopFlag) return;
+  const m = Math.floor((l + r) / 2);
+  await mergeSort(a, l, m, draw, d);
+  await mergeSort(a, m+1, r, draw, d);
+  await merge(a, l, m, r, draw, d);
+}
+
+async function merge(a, l, m, r, draw, d) {
+  const left = a.slice(l, m+1), right = a.slice(m+1, r+1);
+  let i = 0, j = 0, k = l;
+  while (i < left.length && j < right.length) {
+    if (stopFlag) return;
+    comparisons++;
+    const c = Array(a.length).fill(COLORS.default);
+    c[k] = COLORS.comparing;
+    draw(a, c); await sleep(d());
+    if (left[i] <= right[j]) { a[k++] = left[i++]; }
+    else { a[k++] = right[j++]; swaps++; }
+  }
+  while (i < left.length) { a[k++] = left[i++]; swaps++; }
+  while (j < right.length) { a[k++] = right[j++]; swaps++; }
+}
+
+async function quickSort(a, lo, hi, draw, d) {
+  if (lo >= hi || stopFlag) return;
+  const pi = await partition(a, lo, hi, draw, d);
+  await quickSort(a, lo, pi - 1, draw, d);
+  await quickSort(a, pi + 1, hi, draw, d);
+}
+
+async function partition(a, lo, hi, draw, d) {
+  const pivot = a[hi];
+  let i = lo - 1;
+  for (let j = lo; j < hi; j++) {
+    if (stopFlag) return i+1;
+    comparisons++;
+    const c = Array(a.length).fill(COLORS.default);
+    c[hi] = COLORS.pivot; c[j] = COLORS.comparing;
+    if (i >= 0) c[i] = COLORS.comparing;
+    draw(a, c); await sleep(d());
+    if (a[j] < pivot) { i++; [a[i], a[j]] = [a[j], a[i]]; swaps++; }
+  }
+  [a[i+1], a[hi]] = [a[hi], a[i+1]]; swaps++;
+  return i + 1;
+}
+
+async function heapSort(a, draw, d) {
+  const n = a.length;
+  for (let i = Math.floor(n/2) - 1; i >= 0; i--) await heapify(a, n, i, draw, d);
+  for (let i = n - 1; i > 0; i--) {
+    if (stopFlag) return;
+    [a[0], a[i]] = [a[i], a[0]]; swaps++;
+    const c = Array(n).fill(COLORS.default);
+    for (let j = i; j < n; j++) c[j] = COLORS.sorted;
+    c[0] = COLORS.comparing;
+    draw(a, c); await sleep(d());
+    await heapify(a, i, 0, draw, d);
+  }
+}
+
+async function heapify(a, n, i, draw, d) {
+  let largest = i, l = 2*i+1, r = 2*i+2;
+  if (l < n) { comparisons++; if (a[l] > a[largest]) largest = l; }
+  if (r < n) { comparisons++; if (a[r] > a[largest]) largest = r; }
+  if (largest !== i) {
+    if (stopFlag) return;
+    [a[i], a[largest]] = [a[largest], a[i]]; swaps++;
+    const c = Array(a.length).fill(COLORS.default);
+    c[i] = COLORS.comparing; c[largest] = COLORS.comparing;
+    draw(a, c); await sleep(d());
+    await heapify(a, n, largest, draw, d);
+  }
+}
+
+function drawComplexity() {
+  const W = compCanvas.width, H = compCanvas.height;
+  cctx.clearRect(0, 0, W, H);
+  const pad = { l: 40, r: 10, t: 20, b: 30 };
+  const gW = W - pad.l - pad.r, gH = H - pad.t - pad.b;
+  const nVals = Array.from({length: 20}, (_, i) => (i + 1) * 5);
+  const maxY = Math.max(...nVals.map(n => n * n));
+
+  const scaleX = n => pad.l + (n / (nVals[nVals.length-1])) * gW;
+  const scaleY = (v, max) => pad.t + gH - (v / max) * gH;
+
+  cctx.strokeStyle = '#2d3154'; cctx.lineWidth = 1;
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const y = pad.t + gH * f;
+    cctx.beginPath(); cctx.moveTo(pad.l, y); cctx.lineTo(W - pad.r, y); cctx.stroke();
+  });
+
+  const curves = [
+    { label:'O(n)', fn: n => n, color:'#4ade80' },
+    { label:'O(n log n)', fn: n => n * Math.log2(n), color:'#a78bfa' },
+    { label:'O(n²)', fn: n => n * n, color:'#f87171' }
+  ];
+
+  curves.forEach(({fn, color}) => {
+    cctx.strokeStyle = color; cctx.lineWidth = 2;
+    cctx.beginPath();
+    nVals.forEach((n, i) => {
+      const x = scaleX(n), y = scaleY(fn(n), maxY);
+      i === 0 ? cctx.moveTo(x, y) : cctx.lineTo(x, y);
+    });
+    cctx.stroke();
+  });
+
+  cctx.fillStyle = '#4ade80'; cctx.font = '10px monospace';
+  cctx.fillText('O(n)', W - 38, scaleY(nVals[nVals.length-1], maxY) + 4);
+  cctx.fillStyle = '#a78bfa';
+  cctx.fillText('O(n log n)', W - 75, scaleY(nVals[nVals.length-1] * Math.log2(nVals[nVals.length-1]), maxY) - 4);
+  cctx.fillStyle = '#f87171';
+  cctx.fillText('O(n²)', W - 40, pad.t + 12);
+
+  cctx.fillStyle = '#64748b'; cctx.font = '9px sans-serif';
+  cctx.fillText('n →', W - pad.r - 12, H - 4);
+}
+
+function updateAlgoInfo() {
+  const algo = document.getElementById('algoSelect').value;
+  const d = algoData[algo];
+  const badge = (v) => {
+    if (v.includes('n²')) return `<span class="badge badge-red">${v}</span>`;
+    if (v.includes('n log')) return `<span class="badge badge-yellow">${v}</span>`;
+    return `<span class="badge badge-green">${v}</span>`;
+  };
+  document.getElementById('algoInfo').innerHTML = `
+    <h4>${d.name}</h4>
+    <div class="info-row"><span class="info-key">Best case</span><span>${badge(d.best)}</span></div>
+    <div class="info-row"><span class="info-key">Average case</span><span>${badge(d.avg)}</span></div>
+    <div class="info-row"><span class="info-key">Worst case</span><span>${badge(d.worst)}</span></div>
+    <div class="info-row"><span class="info-key">Space</span><span class="info-val">${d.space}</span></div>
+    <div class="info-row"><span class="info-key">Stable</span><span class="info-val">${d.stable}</span></div>
+    <div style="margin-top:10px;font-size:0.78rem;color:#64748b;line-height:1.5">${d.note}</div>
+  `;
+}
+
+document.getElementById('sizeSlider').oninput = e => { document.getElementById('sizeVal').textContent = e.target.value; };
+document.getElementById('speedSlider').oninput = e => { document.getElementById('speedVal').textContent = e.target.value; };
+document.getElementById('algoSelect').onchange = updateAlgoInfo;
+
+window.addEventListener('resize', resize);
+resize();
+generateArray();
+updateAlgoInfo();
+drawComplexity();
+</script>
+</body>
+</html>
